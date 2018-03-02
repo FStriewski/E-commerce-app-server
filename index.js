@@ -5,6 +5,7 @@ const cors = require('cors')
 const sequelize = new Sequelize('postgres://postgres:secret@localhost:5432/postgres')
 const app = express()
 app.use(cors())
+app.use(bodyParser.json())  // Put this way up or routers can't use it!
 
 const productsRouter = require('./products/router')
 app.use(productsRouter)
@@ -21,6 +22,5 @@ next()
 */
 
 
-app.use(bodyParser.json())
 
 app.listen(4001, () => console.log('Express API listening on port 4001'))
