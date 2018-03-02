@@ -2,15 +2,13 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const Sequelize = require('sequelize')
 const cors = require('cors')
+const verify = require('./jwt').verify
+const User = require('./users/model')
 const sequelize = new Sequelize('postgres://postgres:secret@localhost:5432/postgres')
 const app = express()
 app.use(cors())
 app.use(bodyParser.json())  // Put this way up or routers can't use it!
 
-const productsRouter = require('./products/router')
-app.use(productsRouter)
-const usersRouter = require('./users/router')
-app.use(usersRouter)
 
 /* More or less equal to
 app.use(function(req, res, next) {
@@ -21,6 +19,40 @@ next()
 })
 */
 
+app.use(function (req, res, next) {
+  if (!req.headers.authorization) return next()
 
+  const auth = req.headers.authorization.split(' ')
+  if (auth[0] === 'Bearer') {
+    verify(auth[1], function (err, jwt) {
+      if (err) {
+        console.error(err)
+        res.status(400).send({
+          message: "JWT token invalid"
+        })
+      }
+      else {
+        User
+          .findById(jwt.data.id)
+          .then(entity => {
+            req.user = entity
+            next()
+          })
+          .catch(err => {
+            console.error(err)
+            res.status(500).send({
+              message: 'Something went horribly wrong'
+            })
+          })
+      }
+    })
+  }
+  else next()
+})
+
+const productsRouter = require('./products/router')
+app.use(productsRouter)
+const usersRouter = require('./users/router')
+app.use(usersRouter)
 
 app.listen(4001, () => console.log('Express API listening on port 4001'))

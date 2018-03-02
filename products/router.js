@@ -2,6 +2,14 @@ const Router = require('express').Router
 const Product = require('./model')
 const router = new Router()
 
+
+const requireUser = (req, res, next) => {
+	if (req.user) next()
+	else res.status(401).send({
+		message: 'Please login'
+	})
+}
+
    router.get('/products', (req, res) => {
   const products = Product
   .findAll()
@@ -38,7 +46,7 @@ const router = new Router()
     })
   })
 
-router.post('/products', (req, res) => {
+router.post('/products', requireUser, (req, res) => {
     const product = req.body
     console.log(product)
     // insert the new data into our database
