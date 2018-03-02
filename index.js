@@ -83,6 +83,11 @@ app.get('/products', (req, res) => {
   })
 
   app.post('/products', (req, res) => {
-  // ... get the JSON data from the body
-  // ... insert the new data into our database
-})
+    const product = req.body
+    console.log(product)
+    // insert the new data into our database
+    Product.create(product).then(entity => {
+      // send back the 201 Created status and the entity
+      res.status(201).send(entity)
+    })
+  })
